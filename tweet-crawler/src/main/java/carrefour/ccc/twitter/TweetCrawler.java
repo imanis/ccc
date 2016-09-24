@@ -29,7 +29,7 @@ public class TweetCrawler {
 
 
         SparkConf sparkConf = new SparkConf().setAppName("Tweet Crawler").setMaster("local[2]");
-        JavaStreamingContext sc = new JavaStreamingContext(sparkConf, new Duration(10000));
+        JavaStreamingContext sc = new JavaStreamingContext(sparkConf, new Duration(5000));
 
         //String[] filters = {"fraise", "mandarine", "cerise", "legume", "fruit", "raisin"};
         String[] filters = {};
@@ -37,7 +37,7 @@ public class TweetCrawler {
 
 
         //selectTweetsByLang(stream, "fr").print();
-        selectTweetsByLocation(stream, "paris").print();
+        selectTweetsByLang(selectTweetsByLocation(stream, "paris"), "fr").print();
 
 
         sc.start();
@@ -54,7 +54,7 @@ public class TweetCrawler {
     }
 
 
-    static public JavaDStream<Status> selectTweetsByLang(JavaReceiverInputDStream<Status> stream, final String language) {
+    static public JavaDStream<Status> selectTweetsByLang(JavaDStream<Status> stream, final String language) {
         return stream.filter(new Function<Status, Boolean>() {
             public Boolean call(Status status) throws Exception {
                 if (status.getLang().equals(language)) {
@@ -68,26 +68,10 @@ public class TweetCrawler {
     static public JavaDStream<Status> selectTweetsByLocation(JavaReceiverInputDStream<Status> stream, final String city) {
         return stream.filter(new Function<Status, Boolean>() {
             public Boolean call(Status status) throws Exception {
-
-
-                if (status.getUser().getLocation() != null) {
-                    if (status.getUser().getLocation().toLowerCase().contains(city.toLowerCase())) {
-                        return true;
-                    }
-                }
-
-
-                if (status.getPlace() != null) {
-                    if (status.getPlace().toString().toLowerCase().contains(city.toLowerCase())) {
-                        return true;
-                    }
-
-                }
-
-
-                return false;
+                return status.toString().toLowerCase().contains(city.toLowerCase());
             }
         });
     }
+
 
 }
